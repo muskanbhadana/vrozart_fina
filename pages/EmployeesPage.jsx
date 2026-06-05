@@ -45,6 +45,7 @@ export default function EmployeesPage() {
   const [newEmail, setNewEmail] = useState('')
   const [newPhone, setNewPhone] = useState('')
   const [newRole, setNewRole] = useState('')
+  const [newPassword, setNewPassword] = useState('')
   const [phoneError, setPhoneError] = useState('')
 
   // Fetch roles from API
@@ -73,44 +74,39 @@ export default function EmployeesPage() {
     return () => { cancelled = true }
   }, [])
 
-  useEffect(() => {
-    let cancelled = false
-
-    async function fetchEmployees() {
-      try {
-        const token = await getAuthToken()
-        const response = await fetch('http://168.144.70.172:8000/api/admin/employees?limit=20&offset=0', {
-          headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        if (!response.ok) {
-          throw new Error('Failed to fetch employees')
-        }
-        const data = await response.json()
-        if (cancelled) return
-
-        const normalized = (data.items ?? []).map((item) => ({
-          id: item.employeeId ?? item.id,
-          name: item.name ?? '',
-          phone: item.phone ?? '',
-          email: item.email ?? '',
-          role: item.role ?? '',
-          status: (item.status ?? '').toLowerCase(),
-          date: parseDate(item.createdAt),
-        }))
-
-        setEmployees(normalized)
-      } catch (error) {
-        console.error('Failed to load employees:', error)
+  const fetchEmployeesData = async () => {
+    try {
+      const token = await getAuthToken()
+      // Increased limit slightly to ensure newly added show up if there are many
+      const response = await fetch('http://168.144.70.172:8000/api/admin/employees?limit=50&offset=0', {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      if (!response.ok) {
+        throw new Error('Failed to fetch employees')
       }
-    }
+      const data = await response.json()
 
-    fetchEmployees()
-    return () => {
-      cancelled = true
+      const normalized = (data.items ?? []).map((item) => ({
+        id: item.employeeId ?? item.id,
+        name: item.name ?? '',
+        phone: item.phone ?? '',
+        email: item.email ?? '',
+        role: item.role ?? '',
+        status: (item.status ?? '').toLowerCase(),
+        date: parseDate(item.createdAt),
+      }))
+
+      setEmployees(normalized)
+    } catch (error) {
+      console.error('Failed to load employees:', error)
     }
+  }
+
+  useEffect(() => {
+    fetchEmployeesData()
   }, [])
 
   // Helper: get role label from id (or return the raw value if not found)
@@ -170,7 +166,7 @@ export default function EmployeesPage() {
 
   const handleCreateEmployee = async (e) => {
     e.preventDefault()
-    if (!newName || !newEmail || !newPhone || !newRole) return
+    if (!newName || !newEmail || !newPhone || !newRole || !newPassword) return
 
     const trimmedPhone = newPhone.trim()
     if (!isValidPhone(trimmedPhone)) {
@@ -192,6 +188,7 @@ export default function EmployeesPage() {
           email: newEmail,
           phone: newPhone,
           role: newRole,
+          password: newPassword,
         }),
       })
 
@@ -201,24 +198,31 @@ export default function EmployeesPage() {
       }
 
       const data = await response.json()
-      const item = data.employee ?? {}
+      // Ensure we have a valid object even if data.employee is missing
+      const item = data.employee || data || {}
       const normalizedEmployee = {
-        id: item.employeeId ?? item.id,
-        name: item.name ?? newName,
-        phone: item.phone ?? newPhone,
-        email: item.email ?? newEmail,
-        role: item.role ?? newRole,
-        status: (item.status ?? 'Active').toLowerCase(),
-        date: parseDate(item.createdAt),
+        id: item.employeeId || item.id || `emp_${Date.now()}`,
+        name: item.name || newName,
+        phone: item.phone || newPhone,
+        email: item.email || newEmail,
+        role: item.role || newRole,
+        status: (item.status || 'active').toLowerCase(),
+        date: parseDate(item.createdAt || new Date().toISOString()),
       }
 
-      setEmployees((prev) => [...prev, normalizedEmployee])
+      // Prepend to top of the list so it is immediately visible
+      setEmployees((prev) => [normalizedEmployee, ...prev])
+      
       setNewName('')
       setNewEmail('')
       setNewPhone('')
       setNewRole('')
+      setNewPassword('')
       setPhoneError('')
       setIsAddModalOpen(false)
+      
+      // Fetch latest data from server in background to ensure sync
+      fetchEmployeesData()
     } catch (error) {
       console.error('Failed to create employee:', error)
     }
@@ -448,6 +452,19 @@ export default function EmployeesPage() {
                 {phoneError && (
                   <span className="text-xs text-red-500 mt-0.5">{phoneError}</span>
                 )}
+              </div>
+
+              {/* Password */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-700">Password *</label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Enter password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-800 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-100"
+                />
               </div>
 
               {/* Role Dropdown */}

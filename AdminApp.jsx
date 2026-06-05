@@ -13,10 +13,40 @@ import LeadDetailsPage from './pages/LeadDetailsPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import ChatTimelinePage from './pages/ChatTimelinePage.jsx'
 
+// Credit Portal pages
+import CreditDashboard from './pages/CreditDashboard.jsx'
+import AssignedApplicationsPage from './pages/AssignedApplicationsPage.jsx'
+import DocumentsPage from './pages/DocumentsPage.jsx'
+import CreditApplicationDetailsPage from './pages/CreditApplicationDetailsPage.jsx'
+
 export default function AdminApp() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return !!localStorage.getItem('vrozart_admin_access_token')
   })
+  
+  const isCreditRoute = (() => {
+    if (typeof window === 'undefined') return false
+    
+    // Check explicitly saved dashboard type
+    if (localStorage.getItem('vrozart_dashboard_type') === 'credit') return true
+    
+    // Check URL
+    if (window.location.pathname.includes('/credit')) return true
+    
+    // Check role as fallback
+    try {
+      const userStr = localStorage.getItem('vrozart_admin_user')
+      if (userStr) {
+        const user = JSON.parse(userStr)
+        if (user.role === 'CREDIT_ANALYST' || user.role === 'Credit Analyst') {
+          return true
+        }
+      }
+    } catch(e) {}
+    
+    return false
+  })()
+    
   const [activePage, setActivePage] = useState('dashboard')
   const [selectedApplication, setSelectedApplication] = useState(null)
   const [assignSourcePage, setAssignSourcePage] = useState('applications')
@@ -42,7 +72,37 @@ export default function AdminApp() {
 
   return (
     <AdminLayout activePage={activePage} onNavigate={handleNavigate} onLogout={handleLogout}>
-      {activePage === 'dashboard' && <AdminDashboard />}
+      {activePage === 'dashboard' && (isCreditRoute ? <CreditDashboard /> : <AdminDashboard />)}
+      
+      {/* Credit specific pages */}
+      {activePage === 'assigned-applications' && (
+        <AssignedApplicationsPage
+          onViewDetails={(app) => {
+            setSelectedApplication(app)
+            setActivePage('application-details')
+          }}
+        />
+      )}
+      {activePage === 'documents' && (
+        <DocumentsPage
+          application={selectedApplication}
+          onBack={() => {
+            setActivePage('application-details')
+          }}
+        />
+      )}
+      {activePage === 'application-details' && isCreditRoute && (
+        <CreditApplicationDetailsPage
+          application={selectedApplication}
+          onBack={() => {
+            setActivePage('assigned-applications')
+            setSelectedApplication(null)
+          }}
+          onViewDocuments={() => {
+            setActivePage('documents')
+          }}
+        />
+      )}
       {activePage === 'applications' && (
         <ApplicationsPage
           onViewDetails={(app) => {
@@ -104,15 +164,9 @@ export default function AdminApp() {
                 const json = await resp.json()
                 alert('Application assigned successfully')
                 console.log('Assign response:', json)
-                // If server returned updated application, navigate to details
-                const updatedApp = json.application ?? json
-                if (updatedApp) {
-                  setSelectedApplication(updatedApp)
-                  setActivePage('application-details')
-                } else {
-                  setSelectedApplication(null)
-                  setActivePage('applications')
-                }
+                // Always navigate to applications list as requested
+                setSelectedApplication(null)
+                setActivePage('applications')
               } catch (err) {
                 // eslint-disable-next-line no-console
                 console.error('Assign failed', err)
@@ -137,7 +191,7 @@ export default function AdminApp() {
         />
       )}
       {activePage === 'employees' && <EmployeesPage />}
-      {activePage === 'application-details' && (
+      {activePage === 'application-details' && !isCreditRoute && (
         <ApplicationDetailsPage
           application={selectedApplication}
           onBack={() => {

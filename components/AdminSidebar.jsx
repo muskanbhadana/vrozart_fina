@@ -1,4 +1,5 @@
 import { publicImages } from '../assets/images.js'
+import { getAdminUser } from '../config/auth.js'
 import {
   IconLayoutDashboard,
   IconDocument,
@@ -8,19 +9,28 @@ import {
   IconMoreVertical,
 } from './AdminIcons.jsx'
 
-const NAV_ITEMS = [
+const ADMIN_NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: IconLayoutDashboard },
   { id: 'applications', label: 'Application', icon: IconDocument },
   { id: 'leads', label: 'Lead Management', icon: IconUsers },
   { id: 'employees', label: 'Employees', icon: IconUsers },
 ]
 
+const CREDIT_NAV_ITEMS = [
+  { id: 'dashboard', label: 'Dashboard', icon: IconLayoutDashboard },
+  { id: 'assigned-applications', label: 'Assigned Application', icon: IconDocument },
+]
 export default function AdminSidebar({
   activePage,
   onNavigate,
   collapsed,
   onToggleCollapse,
 }) {
+  const user = getAdminUser()
+  const isCreditAnalyst = user?.role === 'CREDIT_ANALYST' || user?.role === 'Credit Analyst' || (typeof window !== 'undefined' && window.location.pathname.includes('/credit')) || (typeof window !== 'undefined' && localStorage.getItem('vrozart_dashboard_type') === 'credit')
+  
+  const currentNavItems = isCreditAnalyst ? CREDIT_NAV_ITEMS : ADMIN_NAV_ITEMS
+
   return (
     <aside
       className={`relative flex h-full shrink-0 flex-col border-r border-slate-100 bg-[#F8F9FC] transition-[width] duration-200 ${
@@ -46,7 +56,7 @@ export default function AdminSidebar({
         </div>
 
         <nav className={`flex flex-col ${collapsed ? 'items-center gap-2' : 'gap-1'}`}>
-          {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
+          {currentNavItems.map(({ id, label, icon: Icon }) => {
             const isActive = activePage === id
             return (
               <button
@@ -97,7 +107,7 @@ export default function AdminSidebar({
         {!collapsed ? (
           <>
             <div className="min-w-0 flex-1">
-              <p className="admin-heading truncate text-sm">Lawrence Cruz</p>
+              <p className="admin-heading truncate text-sm">{getAdminUser()?.name || 'Admin User'}</p>
             </div>
             <button type="button" className="text-slate-400 hover:text-slate-600" aria-label="Profile menu">
               <IconMoreVertical className="text-slate-400" />

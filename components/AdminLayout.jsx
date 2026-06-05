@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { IconSettings } from './AdminIcons.jsx'
 import AdminSidebar from './AdminSidebar.jsx'
+import CreditSidebar from './CreditSidebar.jsx'
 
 export default function AdminLayout({ activePage, onNavigate, children, onLogout }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -11,12 +12,21 @@ export default function AdminLayout({ activePage, onNavigate, children, onLogout
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-slate-50">
-      <AdminSidebar
-        activePage={activePage}
-        onNavigate={onNavigate}
-        collapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
-      />
+      {isCreditRoute ? (
+        <CreditSidebar
+          activePage={activePage}
+          onNavigate={onNavigate}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
+        />
+      ) : (
+        <AdminSidebar
+          activePage={activePage}
+          onNavigate={onNavigate}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
+        />
+      )}
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
         <header className="flex shrink-0 items-start justify-between border-b border-slate-100 px-8 py-6">

@@ -33,6 +33,9 @@ export async function login(email, password) {
   if (data.admin) {
     localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(data.admin))
   }
+  if (data.dashboardType) {
+    localStorage.setItem('vrozart_dashboard_type', data.dashboardType)
+  }
   
   return data
 }
@@ -49,6 +52,7 @@ export async function getAuthToken() {
 export function clearAuthToken() {
   localStorage.removeItem(AUTH_STORAGE_KEY)
   localStorage.removeItem(ADMIN_USER_KEY)
+  localStorage.removeItem('vrozart_dashboard_type')
 }
 
 export function getAdminUser() {

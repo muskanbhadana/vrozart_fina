@@ -1,0 +1,42 @@
+export const DASHBOARD_STATS = [
+  {
+    id: 'total-assigned',
+    label: 'Total Assigned Applications',
+    value: 5,
+    icon: 'document',
+    iconBg: 'bg-blue-600',
+    iconColor: 'text-white',
+  },
+  {
+    id: 'pending-review',
+    label: 'Pending Reviews',
+    value: 3,
+    icon: 'clock',
+    iconBg: 'bg-orange-500',
+    iconColor: 'text-white',
+  },
+  {
+    id: 'approved',
+    label: 'Approved',
+    value: 1,
+    icon: 'check',
+    iconBg: 'bg-emerald-500',
+    iconColor: 'text-white',
+  },
+  {
+    id: 'rejected',
+    label: 'Rejected',
+    value: 1,
+    icon: 'x',
+    iconBg: 'bg-red-500',
+    iconColor: 'text-white',
+  },
+  {
+    id: 'raise-issue',
+    label: 'Raise Issue',
+    value: 1,
+    icon: 'alert',
+    iconBg: 'bg-red-500',
+    iconColor: 'text-white',
+  },
+]

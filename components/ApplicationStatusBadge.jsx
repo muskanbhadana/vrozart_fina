@@ -1,4 +1,5 @@
 import { APPLICATION_STATUS } from '../data/applications.js'
+import { APPLICATION_STAGE } from '../data/creditApplications.js'
 import { StatusIcon } from './AdminIcons.jsx'
 
 // Color palette for unknown/unmapped statuses — each gets a unique, vibrant color
@@ -46,6 +47,33 @@ export default function ApplicationStatusBadge({ status }) {
   // Unknown status — show with a unique color from the palette
   const fallback = getFallbackConfig(status)
   const label = status || 'Unknown'
+
+  return (
+    <span
+      className={`inline-flex h-6 min-w-[6.5rem] max-w-[8.5rem] items-center justify-center gap-1 rounded-full px-2 text-[11px] font-medium leading-none ${fallback.className}`}
+    >
+      <StatusIcon name={fallback.icon} className="h-3 w-3 shrink-0 opacity-80" />
+      <span className="truncate">{label}</span>
+    </span>
+  )
+}
+
+export function ApplicationStageBadge({ stage }) {
+  const config = APPLICATION_STAGE[stage]
+
+  if (config) {
+    return (
+      <span
+        className={`inline-flex h-6 min-w-[6.5rem] max-w-[8.5rem] items-center justify-center gap-1 rounded-full px-2 text-[11px] font-medium leading-none ${config.className}`}
+      >
+        <StatusIcon name={config.icon} className="h-3 w-3 shrink-0 opacity-80" />
+        <span className="truncate">{config.label}</span>
+      </span>
+    )
+  }
+
+  const fallback = getFallbackConfig(stage)
+  const label = stage || 'Unknown'
 
   return (
     <span
