@@ -1,0 +1,95 @@
+body.admin-shell {
+  margin: 0;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+body.admin-shell #root {
+  min-height: 100vh;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.admin-surface {
+  background-color: #f8f9fc;
+}
+
+.admin-table-card {
+  max-width: 100%;
+}
+
+.admin-table {
+  border-collapse: collapse;
+}
+
+.admin-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.admin-title,
+.admin-heading {
+  font-weight: 700;
+  color: #0b1220;
+}
+
+.admin-value {
+  font-weight: 700;
+  color: #0b1220;
+}
+
+.admin-subtitle {
+  color: #475569;
+}
+
+.admin-nav-inactive {
+  color: #334155;
+}
+
+.admin-nav-inactive:hover {
+  color: #0b1220;
+}
+
+.admin-nav-icon-inactive {
+  color: #64748b;
+}
+
+.admin-table-head {
+  font-weight: 600;
+  color: #334155;
+}
+
+.admin-table-cell {
+  color: #1e293b;
+}
+
+.admin-table-muted {
+  color: #475569;
+}
+
+/* Custom premium scrollbar for table container */
+.overflow-x-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 4px;
+  border: 1px solid #f8fafc;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+

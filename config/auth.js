@@ -1,0 +1,61 @@
+const AUTH_STORAGE_KEY = 'vrozart_admin_access_token'
+const ADMIN_USER_KEY = 'vrozart_admin_user'
+const LOGIN_URL = 'http://168.144.70.172:8000/api/admin/auth/login'
+
+export async function login(email, password) {
+  const res = await fetch(LOGIN_URL, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, password }),
+  })
+
+  if (!res.ok) {
+    let errorMsg = 'Login failed'
+    try {
+      const errorData = await res.json()
+      errorMsg = errorData.detail || errorData.message || errorMsg
+    } catch (e) {
+      const text = await res.text()
+      errorMsg = text || errorMsg
+    }
+    throw new Error(errorMsg)
+  }
+
+  const data = await res.json()
+  if (!data.access_token) {
+    throw new Error('Login response missing access_token')
+  }
+
+  localStorage.setItem(AUTH_STORAGE_KEY, data.access_token)
+  if (data.admin) {
+    localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(data.admin))
+  }
+  
+  return data
+}
+
+export async function getAuthToken() {
+  const stored = localStorage.getItem(AUTH_STORAGE_KEY)
+  if (stored) return stored
+  
+  // If no token is found, return null or throw depending on how the app handles it.
+  // We'll throw an error which will be caught by the API callers and can trigger a logout/redirect if needed.
+  throw new Error('No auth token found. Please log in.')
+}
+
+export function clearAuthToken() {
+  localStorage.removeItem(AUTH_STORAGE_KEY)
+  localStorage.removeItem(ADMIN_USER_KEY)
+}
+
+export function getAdminUser() {
+  try {
+    const user = localStorage.getItem(ADMIN_USER_KEY)
+    return user ? JSON.parse(user) : null
+  } catch {
+    return null
+  }
+}
