@@ -101,6 +101,9 @@ export default function AdminApp() {
           onViewDocuments={() => {
             setActivePage('documents')
           }}
+          onReviewChat={() => {
+            setActivePage('chat-timeline')
+          }}
         />
       )}
       {activePage === 'applications' && (
@@ -228,6 +231,7 @@ export default function AdminApp() {
       {activePage === 'chat-timeline' && (
         <ChatTimelinePage
           application={selectedApplication}
+          isCreditRoute={isCreditRoute}
           onBack={() => {
             setActivePage('application-details')
           }}

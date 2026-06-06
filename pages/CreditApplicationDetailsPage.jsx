@@ -41,22 +41,19 @@ function IconChevronRightSmall({ className = 'h-4 w-4' }) {
     </svg>
   )
 }
-
-
-
 /* ── Info Field component ── */
 function InfoField({ label, value }) {
   return (
     <div className="min-w-0">
-      <p className="text-[12px] font-medium uppercase tracking-wider text-slate-400">{label}</p>
-      <p className="mt-1 truncate text-[14px] font-semibold text-slate-800">{value}</p>
+      <p className="text-[13px] text-slate-500 mb-0.5">{label}</p>
+      <p className="truncate text-[14px] font-medium text-slate-900">{value}</p>
     </div>
   )
 }
 
 
 /* ── Main Component ── */
-export default function ApplicationDetailsPage({ application, onBack, onViewDocuments }) {
+export default function ApplicationDetailsPage({ application, onBack, onViewDocuments, onReviewChat }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -199,29 +196,6 @@ export default function ApplicationDetailsPage({ application, onBack, onViewDocu
 
       {/* ── Loan Journey Progress ── */}
       <div>
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h3 className="credit-heading text-[15px]">Loan Journey Progress</h3>
-            <p className="credit-subtitle mt-0.5 text-sm">{progressPercent}% completion</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-[12px] font-semibold text-slate-600 shadow-sm transition-colors hover:bg-slate-50"
-            >
-              <IconEdit className="h-3.5 w-3.5" />
-              Edit
-            </button>
-            <button
-              type="button"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3.5 py-2 text-[12px] font-semibold text-blue-600 shadow-sm transition-colors hover:bg-blue-100"
-            >
-              <IconShare className="h-3.5 w-3.5" />
-              Share Drive
-            </button>
-          </div>
-        </div>
-
         <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex flex-col gap-0.5">
@@ -287,18 +261,18 @@ export default function ApplicationDetailsPage({ application, onBack, onViewDocu
               })}
             </div>
           </div>
-        </div>
 
-        {/* Review Chat link */}
-        <div className="mt-5 flex justify-start">
-          <button
-            type="button"
-            onClick={onViewDocuments}
-            className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-blue-600 transition-colors hover:text-blue-700"
-          >
-            Review Chat
-            <IconChevronRightSmall className="h-4 w-4" />
-          </button>
+          {/* Review Chat link */}
+          <div className="mt-10 flex w-full">
+            <button
+              type="button"
+              onClick={onReviewChat}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#f8fafc] py-3 text-[13px] font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+            >
+              Review Chat
+              <IconChevronRightSmall className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

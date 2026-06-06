@@ -53,7 +53,7 @@ function AttachmentBadge({ count }) {
   )
 }
 
-export default function ChatTimelinePage({ application, onBack }) {
+export default function ChatTimelinePage({ application, isCreditRoute, onBack }) {
   const [messages, setMessages] = useState([])
   const [chatId, setChatId] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -75,15 +75,16 @@ export default function ChatTimelinePage({ application, onBack }) {
       setFetchError(null)
       try {
         const token = await getAuthToken()
-        const response = await fetch(
-          `http://168.144.70.172:8000/api/admin/applications/${encodeURIComponent(applicationId)}/timeline`,
-          {
-            headers: {
-              Accept: 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        )
+        const endpoint = isCreditRoute 
+          ? `http://168.144.70.172:8000/api/credit-analyst/applications/${encodeURIComponent(applicationId)}/chat`
+          : `http://168.144.70.172:8000/api/admin/applications/${encodeURIComponent(applicationId)}/timeline`
+
+        const response = await fetch(endpoint, {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        })
         if (!response.ok) {
           throw new Error('Failed to load chat timeline')
         }
@@ -220,60 +221,115 @@ export default function ChatTimelinePage({ application, onBack }) {
                 {/* Messages for this date */}
                 {group.messages.map((msg) => {
                   const isCustomer = msg.role === 'user'
-                  const attachmentCount = (msg.attachments ?? []).filter((a) => a && a !== 'string').length
+                  const attachmentFiles = msg.attachmentFiles || []
+                  const isUploadMessage = isCustomer && msg.content.trim().startsWith('Uploaded:')
+                  const showBubble = !isUploadMessage || (isUploadMessage && attachmentFiles.length === 0)
 
                   return (
                     <div
                       key={msg.messageId}
-                      className={`mb-3 flex ${isCustomer ? 'justify-end' : 'justify-start'}`}
+                      className={`mb-6 flex ${isCustomer ? 'justify-end' : 'justify-start'}`}
                     >
-                      <div className={`flex max-w-[75%] gap-2.5 ${isCustomer ? 'flex-row-reverse' : 'flex-row'}`}>
-                        {/* Avatar */}
-                        <div
-                          className={`mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
-                            isCustomer
-                              ? 'bg-[#DBEAFE] text-[#2563EB]'
-                              : 'bg-[#334155] text-white'
-                          }`}
-                        >
-                          {isCustomer ? (
-                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      <div className={`flex max-w-[85%] gap-3 ${isCustomer ? 'flex-row-reverse' : 'flex-row'}`}>
+                        {/* Avatar (only for AI) */}
+                        {!isCustomer && (
+                          <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-blue-100 bg-white shadow-sm">
+                            <svg className="h-[18px] w-[18px] text-[#4A72B2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                             </svg>
-                          ) : (
-                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
-                            </svg>
-                          )}
-                        </div>
-
-                        {/* Message Bubble */}
-                        <div>
-                          {/* Speaker label */}
-                          <p className={`mb-1 text-[10px] font-semibold text-slate-400 ${isCustomer ? 'text-right' : 'text-left'}`}>
-                            {msg.speaker ?? (isCustomer ? 'Customer' : 'AI')}
-                          </p>
-
-                          <div
-                            className={`rounded-2xl px-4 py-2.5 text-[13px] leading-relaxed ${
-                              isCustomer
-                                ? 'rounded-tr-md bg-[#3B82F6] text-white'
-                                : 'rounded-tl-md bg-[#F1F5F9] text-slate-800'
-                            }`}
-                          >
-                            {/* Message content - preserve line breaks */}
-                            <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-
-                            {/* Attachments indicator */}
-                            {attachmentCount > 0 && (
-                              <AttachmentBadge count={attachmentCount} />
-                            )}
                           </div>
+                        )}
 
-                          {/* Timestamp */}
-                          <p className={`mt-1 text-[10px] text-slate-400 ${isCustomer ? 'text-right' : 'text-left'}`}>
-                            {formatTime(msg.createdAt)}
-                          </p>
+                        {/* Message Content Area */}
+                        <div className={`flex flex-col ${isCustomer ? 'items-end' : 'items-start'}`}>
+                          {/* Speaker and Time (only for AI) */}
+                          {!isCustomer && (
+                            <div className="mb-1.5 flex items-baseline gap-2 px-1">
+                              <span className="text-[13px] font-bold text-slate-800">FinnaBrain Ai</span>
+                              <span className="text-[11px] text-slate-400">{formatTime(msg.createdAt)}</span>
+                            </div>
+                          )}
+
+                          {/* Message Bubble */}
+                          {showBubble && (
+                            <div
+                              className={`rounded-2xl px-5 py-4 text-[14px] leading-relaxed shadow-sm ${
+                                isCustomer
+                                  ? 'bg-[#4A72B2] text-white rounded-br-sm'
+                                  : 'bg-[#f8fafc] text-slate-700 border border-slate-100/50 rounded-bl-sm'
+                              }`}
+                            >
+                              {/* Parse content for options if AI, otherwise raw text */}
+                              {!isCustomer ? (
+                                <div className="flex flex-col gap-4">
+                                  {msg.content.split('\n\n').map((part, idx) => {
+                                    const qMatch = part.match(/^(.*?\?)\s+([^?]+)\.?$/);
+                                    if (qMatch) {
+                                      const question = qMatch[1];
+                                      const optionsStr = qMatch[2];
+                                      if (optionsStr.includes(',') || optionsStr.split(' ').length <= 4) {
+                                        const options = optionsStr.split(',').map(s => s.trim());
+                                        return (
+                                          <div key={idx} className="flex flex-col gap-3">
+                                            <p className="font-semibold text-slate-800">{question}</p>
+                                            <div className="flex flex-wrap gap-2.5 mt-1">
+                                              {options.map((opt, i) => (
+                                                <div key={i} className="flex items-center gap-2.5 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-[13px] font-medium text-slate-700 shadow-sm">
+                                                  <div className="h-3.5 w-3.5 rounded-full border-2 border-slate-200"></div>
+                                                  {opt.replace(/\.$/, '')}
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        );
+                                      }
+                                    }
+                                    return <p key={idx} className="whitespace-pre-wrap break-words">{part}</p>;
+                                  })}
+                                </div>
+                              ) : (
+                                <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Attachments rendered outside the text bubble */}
+                          {attachmentFiles.length > 0 && (
+                            <div className={`${showBubble ? 'mt-2' : ''} flex flex-col gap-3 ${isCustomer ? 'items-end' : 'items-start'}`}>
+                              {attachmentFiles.map(file => {
+                                const isImage = file.mimeType?.startsWith('image/');
+                                const isPdf = file.mimeType === 'application/pdf';
+                                const fileUrl = file.viewUrl || file.s3Url || file.url;
+                                
+                                if (isImage) {
+                                  return (
+                                    <a key={file.fileId} href={fileUrl} target="_blank" rel="noreferrer" className="block w-40 shrink-0">
+                                      <img src={fileUrl} alt={file.displayName} className="w-full rounded-lg border border-slate-200 shadow-sm object-cover bg-white" />
+                                    </a>
+                                  );
+                                }
+                                if (isPdf) {
+                                  return (
+                                    <a key={file.fileId} href={fileUrl} target="_blank" rel="noreferrer" className="flex flex-col rounded-xl border border-slate-200 bg-white px-4 py-2.5 shadow-sm hover:bg-slate-50 transition-colors w-56">
+                                      <p className="truncate text-[13px] text-slate-700">{file.displayName}</p>
+                                      <p className="text-[11px] text-slate-400 mt-0.5">PDF uploaded</p>
+                                    </a>
+                                  );
+                                }
+                                return (
+                                  <a key={file.fileId} href={fileUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 shadow-sm w-fit">
+                                    <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                    <span className="truncate">{file.displayName}</span>
+                                  </a>
+                                );
+                              })}
+                            </div>
+                          )}
+                          
+                          {/* Time for customer */}
+                          {isCustomer && (
+                            <span className="mt-1.5 px-1 text-[11px] text-slate-400">{formatTime(msg.createdAt)}</span>
+                          )}
                         </div>
                       </div>
                     </div>

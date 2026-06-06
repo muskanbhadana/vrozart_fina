@@ -18,6 +18,7 @@ export default function AdminLayout({ activePage, onNavigate, children, onLogout
           onNavigate={onNavigate}
           collapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
+          onLogout={onLogout}
         />
       ) : (
         <AdminSidebar
@@ -25,6 +26,7 @@ export default function AdminLayout({ activePage, onNavigate, children, onLogout
           onNavigate={onNavigate}
           collapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
+          onLogout={onLogout}
         />
       )}
 
@@ -41,13 +43,6 @@ export default function AdminLayout({ activePage, onNavigate, children, onLogout
               aria-label="Settings"
             >
               <IconSettings className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => onLogout && onLogout()}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-[#334155] bg-transparent hover:bg-slate-50 border border-slate-100"
-            >
-              Logout
             </button>
           </div>
         </header>

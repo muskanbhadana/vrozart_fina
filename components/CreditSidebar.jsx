@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { publicImages } from '../assets/images.js'
 import { getAdminUser } from '../config/auth.js'
 import {
@@ -18,7 +19,10 @@ export default function CreditSidebar({
   onNavigate,
   collapsed,
   onToggleCollapse,
+  onLogout,
 }) {
+  const [showLogoutPopup, setShowLogoutPopup] = useState(false)
+
   return (
     <aside
       className={`relative flex h-full shrink-0 flex-col border-r border-slate-100 bg-[#F8F9FC] transition-[width] duration-200 ${
@@ -97,9 +101,39 @@ export default function CreditSidebar({
             <div className="min-w-0 flex-1">
               <p className="credit-heading truncate text-sm">{getAdminUser()?.name || 'Admin User'}</p>
             </div>
-            <button type="button" className="text-slate-400 hover:text-slate-600" aria-label="Profile menu">
-              <IconMoreVertical className="text-slate-400" />
-            </button>
+            <div className="relative flex">
+              <button 
+                type="button" 
+                className="text-slate-400 hover:text-slate-600" 
+                aria-label="Profile menu"
+                onClick={() => setShowLogoutPopup(!showLogoutPopup)}
+              >
+                <IconMoreVertical className="text-slate-400" />
+              </button>
+              
+              {showLogoutPopup && (
+                <div className="absolute bottom-6 -right-2 mb-2 w-48 rounded-xl border border-slate-200 bg-white p-3 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] z-50">
+                  <p className="mb-3 text-sm font-medium text-slate-700">Do you want to logout?</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setShowLogoutPopup(false)
+                        onLogout && onLogout()
+                      }}
+                      className="flex-1 rounded-lg bg-red-50 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors"
+                    >
+                      Yes
+                    </button>
+                    <button
+                      onClick={() => setShowLogoutPopup(false)}
+                      className="flex-1 rounded-lg border border-slate-200 bg-white py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+                    >
+                      No
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </>
         ) : null}
       </div>
