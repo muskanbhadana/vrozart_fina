@@ -71,7 +71,7 @@ export default function AdminApp() {
   }
 
   return (
-    <AdminLayout activePage={activePage} onNavigate={handleNavigate} onLogout={handleLogout}>
+    <AdminLayout activePage={activePage} onNavigate={handleNavigate} onLogout={handleLogout} isCreditRoute={isCreditRoute}>
       {activePage === 'dashboard' && (isCreditRoute ? <CreditDashboard /> : <AdminDashboard />)}
       
       {/* Credit specific pages */}
@@ -140,7 +140,7 @@ export default function AdminApp() {
                 const token = await getAuthToken()
                 const appId = selectedApplication && (selectedApplication.id || selectedApplication.applicationId)
                 if (!appId) {
-                  alert('No application selected')
+                  console.warn('No application selected')
                   setSelectedApplication(null)
                   setActivePage('applications')
                   return
@@ -162,15 +162,13 @@ export default function AdminApp() {
                 }
 
                 const json = await resp.json()
-                alert('Application assigned successfully')
-                console.log('Assign response:', json)
+                console.log('Application assigned successfully:', json)
                 // Always navigate to applications list as requested
                 setSelectedApplication(null)
                 setActivePage('applications')
               } catch (err) {
                 // eslint-disable-next-line no-console
-                console.error('Assign failed', err)
-                alert('Failed to assign application')
+                console.error('Failed to assign application', err)
                 setSelectedApplication(null)
                 setActivePage('applications')
               }

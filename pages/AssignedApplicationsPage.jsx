@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { STATUS_FILTER_OPTIONS } from '../data/creditApplications.js'
-import ApplicationStatusBadge from '../components/ApplicationStatusBadge.jsx'
+import { CreditStatusBadge, ApplicationStageBadge } from '../components/ApplicationStatusBadge.jsx'
 import { IconChevronDown, IconFilter, IconSearch, IconEye } from '../components/CreditIcons.jsx'
 import { getAuthToken } from '../config/auth.js'
 
@@ -70,7 +70,7 @@ export default function AssignedApplicationsPage({ onViewDetails }) {
   }, [applications, query, statusFilter])
 
   return (
-    <div className="flex min-h-0 flex-col gap-5">
+    <div className="flex flex-1 min-h-0 flex-col gap-5">
       <div>
         <h2 className="credit-heading text-lg">Assigned Applications</h2>
         <p className="credit-subtitle mt-0.5 text-sm">
@@ -111,14 +111,14 @@ export default function AssignedApplicationsPage({ onViewDetails }) {
         </div>
       </div>
 
-      <div className="credit-table-card overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm">
-        <div className="max-h-[430px] overflow-auto">
+      <div className="credit-table-card flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm">
+        <div className="flex-1 overflow-auto">
           {loading ? (
             <div className="p-8 text-center text-sm text-slate-500">Loading applications...</div>
           ) : (
             <table className="credit-table w-full min-w-[900px] text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 bg-[#F9FAFC]">
+              <thead className="sticky top-0 z-10 bg-slate-50 shadow-sm">
+                <tr className="border-b border-slate-200/80">
                   <th className="credit-table-head whitespace-nowrap px-4 py-4 text-left text-[13px] font-bold text-slate-900">
                     Application ID
                   </th>
@@ -136,6 +136,12 @@ export default function AssignedApplicationsPage({ onViewDetails }) {
                   </th>
                   <th className="credit-table-head whitespace-nowrap px-4 py-4 text-left text-[13px] font-bold text-slate-900">
                     Status
+                  </th>
+                  <th className="credit-table-head whitespace-nowrap px-4 py-4 text-left text-[13px] font-bold text-slate-900">
+                    Stage
+                  </th>
+                  <th className="credit-table-head whitespace-nowrap px-4 py-4 text-left text-[13px] font-bold text-slate-900">
+                    Date
                   </th>
                   <th className="credit-table-head whitespace-nowrap px-4 py-4 text-center text-[13px] font-bold text-slate-900">
                     Actions
@@ -165,7 +171,13 @@ export default function AssignedApplicationsPage({ onViewDetails }) {
                       {row.businessName}
                     </td>
                     <td className="whitespace-nowrap px-4 py-3.5">
-                      <ApplicationStatusBadge status={row.statusKey || row.status} />
+                      <CreditStatusBadge status={row.statusKey || row.status} />
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3.5">
+                      <ApplicationStageBadge stage={row.stageKey || row.stage || row.currentStage} />
+                    </td>
+                    <td className="credit-table-muted whitespace-nowrap px-4 py-3.5 text-sm tabular-nums">
+                      {row.date || (row.createdAt ? new Date(row.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '')}
                     </td>
                     <td className="whitespace-nowrap px-4 py-3.5 text-center">
                       <button

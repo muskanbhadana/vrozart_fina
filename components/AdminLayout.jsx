@@ -3,11 +3,11 @@ import { IconSettings } from './AdminIcons.jsx'
 import AdminSidebar from './AdminSidebar.jsx'
 import CreditSidebar from './CreditSidebar.jsx'
 
-export default function AdminLayout({ activePage, onNavigate, children, onLogout }) {
+export default function AdminLayout({ activePage, onNavigate, children, onLogout, isCreditRoute: isCreditRouteProp }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
-  const isCreditRoute = typeof window !== 'undefined' && window.location.pathname.includes('/credit')
-  const dashboardTitle = isCreditRoute ? 'Credit Analyst Portal' : 'Admin Panel'
+  const isCreditRoute = isCreditRouteProp !== undefined ? isCreditRouteProp : (typeof window !== 'undefined' && window.location.pathname.includes('/credit'))
+  const dashboardTitle = isCreditRoute ? 'Credit Analyst' : 'Admin Panel'
   const dashboardSubtitle = isCreditRoute ? 'Manage credit analysis operations' : 'Manage your finance operations'
 
   return (
@@ -52,7 +52,7 @@ export default function AdminLayout({ activePage, onNavigate, children, onLogout
           </div>
         </header>
 
-        <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden bg-slate-50/40 px-6 py-5 md:px-8 md:py-6">
+        <main className="min-h-0 flex-1 flex flex-col overflow-y-auto overflow-x-hidden bg-slate-50/40 px-6 py-5 md:px-8 md:py-6">
           {children}
         </main>
       </div>

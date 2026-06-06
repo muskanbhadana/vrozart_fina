@@ -340,17 +340,7 @@ export default function ApplicationDetailsPage({ application, onBack, onViewVaul
                   {isCompleted ? (
                     /* Completed step circle */
                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#4A72B2] text-white shadow-sm">
-                      <svg
-                        className="h-5 w-5"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
+                      <img src="/images/Icon.svg" alt="" className="h-5 w-5" aria-hidden="true" />
                     </div>
                   ) : isActive ? (
                     /* Active step circle */

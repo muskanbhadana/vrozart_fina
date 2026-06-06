@@ -172,9 +172,9 @@ export default function LeadsPage({ onViewDetails, onAddLead }) {
   }, [leads, query, statusFilter])
 
   return (
-    <div className="flex min-h-0 flex-col gap-5">
+    <div className="flex flex-1 min-h-0 flex-col gap-5">
       {/* Title & Header Action Buttons */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex shrink-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="admin-heading text-lg">Leads</h2>
           <p className="admin-subtitle mt-0.5 text-sm">Manage all incoming leads</p>
@@ -242,7 +242,7 @@ export default function LeadsPage({ onViewDetails, onAddLead }) {
       </div>
 
       {uploading || importResult ? (
-        <div className="rounded-md border border-slate-200/80 bg-white p-3 text-sm">
+        <div className="shrink-0 rounded-md border border-slate-200/80 bg-white p-3 text-sm">
           {uploading ? (
             <div>Uploading file... please wait.</div>
           ) : importResult?.success ? (
@@ -256,7 +256,7 @@ export default function LeadsPage({ onViewDetails, onAddLead }) {
       ) : null}
 
       {/* Search & Status Filters */}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+      <div className="flex shrink-0 flex-col gap-3 lg:flex-row lg:items-center">
         <div className="relative min-w-0 flex-1">
           <IconSearch className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
@@ -290,11 +290,11 @@ export default function LeadsPage({ onViewDetails, onAddLead }) {
       </div>
 
       {/* Leads Table Card */}
-      <div className="admin-table-card overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm">
-        <div className="max-h-[430px] overflow-auto">
+      <div className="admin-table-card flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm">
+        <div className="flex-1 overflow-auto">
           <table className="admin-table w-full min-w-[1100px] text-sm">
-            <thead>
-              <tr className="border-b border-slate-200/80 bg-slate-50/90">
+            <thead className="sticky top-0 z-10 bg-slate-50 shadow-sm">
+              <tr className="border-b border-slate-200/80">
                 <th className="admin-table-head whitespace-nowrap px-4 py-3.5 text-left text-xs font-semibold text-[#475569] tracking-wider">
                   Lead ID
                 </th>

@@ -124,6 +124,33 @@ function DocumentRow({ doc, onActionClick }) {
   const showActions = doc.status === 'pending'
   const isMissing = doc.status === 'missing'
 
+  const handleDownloadClick = async (e, url, name) => {
+    e.preventDefault();
+    try {
+      // Removing the Authorization header because these are likely pre-signed S3 URLs.
+      // Sending custom headers triggers a CORS preflight which S3 rejects with 403.
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Download failed');
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = name || 'document';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Error downloading:', error);
+      // Fallback: If we must fall back, we use an invisible iframe so it doesn't open a new tab
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = url;
+      document.body.appendChild(iframe);
+      setTimeout(() => iframe.remove(), 5000);
+    }
+  };
+
   return (
     <div className={`flex flex-col gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all hover:border-slate-200 hover:shadow-md ${isMissing ? 'opacity-70' : ''}`}>
       {/* Top row: Icon, Info, Eye/Download */}
@@ -154,9 +181,13 @@ function DocumentRow({ doc, onActionClick }) {
               </a>
             )}
             {doc.downloadUrl && (
-              <a href={doc.downloadUrl} download className="transition-colors hover:text-slate-600">
+              <button 
+                type="button" 
+                onClick={(e) => handleDownloadClick(e, doc.downloadUrl, doc.name)}
+                className="transition-colors hover:text-slate-600"
+              >
                 <IconDownload className="h-4 w-4" />
-              </a>
+              </button>
             )}
           </div>
         )}
@@ -211,6 +242,7 @@ export default function DocumentsPage({ application, onBack }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [popup, setPopup] = useState({ isOpen: false, type: null, docId: null })
+  const [issueNote, setIssueNote] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -285,10 +317,11 @@ export default function DocumentsPage({ application, onBack }) {
   })
 
   // We recalculate these locally so if the user clicks "Approve" (locally for now), the UI updates.
-  const verifiedCount = summary.verifiedCount || 0
   const totalCount = summary.totalCount || documents.length
-  const pendingCount = summary.pendingCount || 0
+  const verifiedCount = documents.filter(d => d.status === 'approved' || d.status === 'verified').length
+  const pendingCount = documents.filter(d => d.status === 'pending').length
   const hasPending = pendingCount > 0
+  const percentVerified = totalCount > 0 ? (verifiedCount / totalCount) * 100 : 0
 
   const openPopup = (docId, type) => {
     setPopup({ isOpen: true, type, docId })
@@ -296,12 +329,52 @@ export default function DocumentsPage({ application, onBack }) {
 
   const closePopup = () => {
     setPopup({ isOpen: false, type: null, docId: null })
+    setIssueNote('')
   }
 
   const confirmAction = async () => {
-    // Note: Here you would typically make an API call to update the reviewStatus of the document
-    // For now, we simply close the popup to mirror the original functionality visually.
-    // E.g. await fetch(`/api/credit-analyst/applications/.../documents/${popup.docId}/review`, { ... })
+    if (popup.type === 'approved' || popup.type === 'rejected' || popup.type === 'issue_raised') {
+      try {
+        const token = await getAuthToken()
+        const appId = application?.id || application?.applicationId
+        
+        if (appId && popup.docId) {
+          const actionEndpoint = popup.type === 'approved' ? 'approve' : popup.type === 'rejected' ? 'reject' : 'raise-issue'
+          
+          const options = {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          }
+
+          if (popup.type === 'issue_raised') {
+            options.headers['Content-Type'] = 'application/json'
+            options.body = JSON.stringify({ note: issueNote })
+          } else {
+            options.body = ''
+          }
+
+          const res = await fetch(`http://168.144.70.172:8000/api/credit-analyst/applications/${encodeURIComponent(appId)}/documents/${encodeURIComponent(popup.docId)}/${actionEndpoint}`, options)
+          
+          if (res.ok) {
+            const result = await res.json()
+            if (result.success && result.document) {
+              setData(prevData => {
+                if (!prevData) return prevData
+                const updatedDocs = (prevData.documents || []).map(d => 
+                  d.fileId === popup.docId ? result.document : d
+                )
+                return { ...prevData, documents: updatedDocs, vaultSummary: result.vaultSummary, overallStatus: result.overallStatus }
+              })
+            }
+          }
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
     closePopup()
   }
 
@@ -349,20 +422,20 @@ export default function DocumentsPage({ application, onBack }) {
         <div className="rounded-2xl border border-slate-100 bg-white px-6 py-6 shadow-sm">
           <h3 className="text-[14px] font-bold text-slate-800">Document Completion</h3>
           <p className="mt-0.5 text-[12px] font-medium text-slate-400">
-            {summary.label || `${verifiedCount} of ${totalCount} documents verified`}
+            {`${verifiedCount} of ${totalCount} documents verified`}
           </p>
 
           {/* Progress bar */}
           <div className="mt-4 h-[5px] overflow-hidden rounded-full bg-slate-200">
             <div
               className="h-full rounded-full bg-black transition-[width] duration-500 ease-out"
-              style={{ width: `${summary.percentVerified || ((verifiedCount / totalCount) * 100)}%` }}
+              style={{ width: `${percentVerified}%` }}
             />
           </div>
 
           {hasPending && (
             <p className="mt-3 text-[12px] font-medium text-slate-500">
-              {summary.pendingLabel || `${pendingCount} documents pending verification`}
+              {`${pendingCount} documents pending verification`}
             </p>
           )}
         </div>
@@ -419,6 +492,8 @@ export default function DocumentsPage({ application, onBack }) {
                  <textarea
                    className="w-full rounded-xl border-none bg-slate-100 p-4 text-[13px] text-slate-800 placeholder-slate-400 outline-none focus:ring-2 focus:ring-[#B33B4D]/20 resize-none h-24"
                    placeholder="What's the issue? Let us know!..."
+                   value={issueNote}
+                   onChange={(e) => setIssueNote(e.target.value)}
                  />
                </div>
             )}

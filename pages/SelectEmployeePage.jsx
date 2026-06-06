@@ -71,8 +71,8 @@ export default function SelectEmployeePage({ onBack, onAssign }) {
   }, [employees, query])
 
   return (
-    <div className="flex min-h-0 flex-col gap-5">
-      <div className="flex items-center justify-between rounded-xl bg-zinc-700 px-4 py-3">
+    <div className="flex flex-1 min-h-0 flex-col gap-5">
+      <div className="flex shrink-0 items-center justify-between rounded-xl bg-zinc-700 px-4 py-3">
         <div className="w-8" />
         <button
           type="button"
@@ -83,7 +83,7 @@ export default function SelectEmployeePage({ onBack, onAssign }) {
         </button>
       </div>
 
-      <div className="flex items-start justify-between">
+      <div className="flex shrink-0 items-start justify-between">
         <div>
           <h2 className="admin-heading text-lg">Select Employee</h2>
           <p className="admin-subtitle mt-0.5 text-sm">Select the employee</p>
@@ -102,7 +102,7 @@ export default function SelectEmployeePage({ onBack, onAssign }) {
         )}
       </div>
 
-      <div className="relative min-w-0">
+      <div className="relative min-w-0 shrink-0">
         <IconSearch className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         <input
           type="search"
@@ -113,7 +113,7 @@ export default function SelectEmployeePage({ onBack, onAssign }) {
         />
       </div>
 
-      <div className="flex flex-col gap-3 overflow-y-auto pb-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pb-4">
         {isLoading ? (
           <p className="py-8 text-center text-sm text-slate-500">Loading employees...</p>
         ) : (
@@ -121,8 +121,9 @@ export default function SelectEmployeePage({ onBack, onAssign }) {
             {filtered.map((row) => {
               const isSelected = selectedId === row.id
               return (
-                <label
+                <div
                   key={row.id}
+                  onClick={() => setSelectedId(isSelected ? null : row.id)}
                   className={`flex cursor-pointer items-center justify-between rounded-xl border p-4 transition-colors ${
                     isSelected ? 'border-emerald-500 bg-emerald-50/10' : 'border-slate-100 bg-slate-50/50 hover:bg-slate-50'
                   }`}
@@ -145,16 +146,8 @@ export default function SelectEmployeePage({ onBack, onAssign }) {
                         </svg>
                       )}
                     </div>
-                    <input
-                      type="radio"
-                      name="employeeSelection"
-                      value={row.id}
-                      checked={isSelected}
-                      onChange={() => setSelectedId(row.id)}
-                      className="sr-only"
-                    />
                   </div>
-                </label>
+                </div>
               )
             })}
             {filtered.length === 0 && (
