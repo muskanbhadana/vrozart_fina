@@ -16,10 +16,36 @@ export async function login(email, password) {
     let errorMsg = 'Login failed'
     try {
       const errorData = await res.json()
-      errorMsg = errorData.detail || errorData.message || errorMsg
+      if (errorData && typeof errorData === 'object') {
+        if (errorData.error) {
+          if (typeof errorData.error === 'object') {
+            errorMsg = errorData.error.message || errorData.error.code || JSON.stringify(errorData.error)
+          } else {
+            errorMsg = errorData.error
+          }
+        } else if (errorData.detail) {
+          if (Array.isArray(errorData.detail)) {
+            errorMsg = errorData.detail.map(d => {
+              if (d && typeof d === 'object') {
+                const field = d.loc ? d.loc[d.loc.length - 1] : ''
+                return field ? `${field}: ${d.msg}` : (d.msg || JSON.stringify(d))
+              }
+              return String(d)
+            }).join(', ')
+          } else if (typeof errorData.detail === 'object') {
+            errorMsg = errorData.detail.message || JSON.stringify(errorData.detail)
+          } else {
+            errorMsg = errorData.detail
+          }
+        } else {
+          errorMsg = errorData.message || errorMsg
+        }
+      }
     } catch (e) {
-      const text = await res.text()
-      errorMsg = text || errorMsg
+      try {
+        const text = await res.text()
+        errorMsg = text || errorMsg
+      } catch (textErr) {}
     }
     throw new Error(errorMsg)
   }

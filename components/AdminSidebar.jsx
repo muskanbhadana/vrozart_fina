@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { publicImages } from '../assets/images.js'
 import { getAdminUser } from '../config/auth.js'
+import { determineCreditRoute } from '../config/routing.js'
 import {
   IconLayoutDashboard,
   IconDocument,
@@ -30,7 +31,11 @@ export default function AdminSidebar({
 }) {
   const [showLogoutPopup, setShowLogoutPopup] = useState(false)
   const user = getAdminUser()
-  const isCreditAnalyst = user?.role === 'CREDIT_ANALYST' || user?.role === 'Credit Analyst' || (typeof window !== 'undefined' && window.location.pathname.includes('/credit')) || (typeof window !== 'undefined' && localStorage.getItem('vrozart_dashboard_type') === 'credit')
+  const isCreditAnalyst = determineCreditRoute(
+    typeof window !== 'undefined' ? localStorage.getItem('vrozart_dashboard_type') : null,
+    typeof window !== 'undefined' ? window.location.pathname : null,
+    user
+  )
   
   const currentNavItems = isCreditAnalyst ? CREDIT_NAV_ITEMS : ADMIN_NAV_ITEMS
 

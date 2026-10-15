@@ -8,10 +8,17 @@ import {
   IconChevronRight,
   IconMoreVertical,
 } from './CreditIcons.jsx'
+import { IconUsers } from './AdminIcons.jsx'
 
-const NAV_ITEMS = [
+const ANALYST_NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: IconLayoutDashboard },
   { id: 'assigned-applications', label: 'Assigned Application', icon: IconDocument },
+]
+
+const MANAGER_NAV_ITEMS = [
+  { id: 'dashboard', label: 'Dashboard', icon: IconLayoutDashboard },
+  { id: 'applications', label: 'Application', icon: IconDocument },
+  { id: 'employees', label: 'Analyst Performance', icon: IconUsers },
 ]
 
 export default function CreditSidebar({
@@ -22,6 +29,9 @@ export default function CreditSidebar({
   onLogout,
 }) {
   const [showLogoutPopup, setShowLogoutPopup] = useState(false)
+  const user = getAdminUser()
+  const isCreditManager = user && typeof user.role === 'string' && user.role.toLowerCase().includes('manager')
+  const currentNavItems = isCreditManager ? MANAGER_NAV_ITEMS : ANALYST_NAV_ITEMS
 
   return (
     <aside
@@ -48,7 +58,7 @@ export default function CreditSidebar({
         </div>
 
         <nav className={`flex flex-col ${collapsed ? 'items-center gap-2' : 'gap-1'}`}>
-          {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
+          {currentNavItems.map(({ id, label, icon: Icon }) => {
             const isActive = activePage === id
             return (
               <button

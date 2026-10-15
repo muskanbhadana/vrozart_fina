@@ -7,18 +7,41 @@ export default function LoginPage({ onLogin }) {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [emailError, setEmailError] = useState(null)
+  const [passwordError, setPasswordError] = useState(null)
+  const [apiError, setApiError] = useState(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    const trimmedEmail = email.trim()
+    const trimmedPassword = password.trim()
+
+    // Reset errors
+    setEmailError(null)
+    setPasswordError(null)
+    setApiError(null)
+
+    let hasError = false
+
+    if (!trimmedEmail) {
+      setEmailError('Please enter your email or phone number')
+      hasError = true
+    }
+    if (!trimmedPassword) {
+      setPasswordError('Please enter your password')
+      hasError = true
+    }
+
+    if (hasError) return
+
     setIsLoading(true)
-    setError(null)
-    
+
     try {
-      await login(email, password)
+      await login(trimmedEmail, trimmedPassword)
       onLogin() // Notify parent component (AdminApp)
     } catch (err) {
-      setError(err.message || 'Failed to login')
+      setApiError(err.message || 'Failed to login')
     } finally {
       setIsLoading(false)
     }
@@ -27,37 +50,46 @@ export default function LoginPage({ onLogin }) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#e8eaef] p-4 sm:p-6 md:p-10 font-sans">
       <div className="grid w-full max-w-[1100px] overflow-hidden rounded-3xl border border-white/80 bg-white shadow-xl md:grid-cols-2">
-        
+
         {/* Left Side - Login Form (matches AuthShell children wrapper) */}
         <div className="bg-[#f8f9fb]">
           <div className="flex flex-col px-8 py-10 sm:px-12 sm:py-14 md:px-14 md:py-16">
-            
+
             {/* Header matches AuthHeader exactly */}
             <div className="flex justify-center">
               <img src={publicImages.logo} alt="VROZART FINANCE" className="h-7 w-auto object-contain" />
             </div>
-            
+
             <h1 className="mt-10 text-center text-[26px] font-bold leading-snug tracking-tight text-[#1a1a1a] sm:text-[28px]">
               Finance built around<br />relationships, not paperwork.
             </h1>
-            
+
             <div className="mt-8 text-center">
               <h2 className="text-xl font-bold text-gray-800">Log In</h2>
               <p className="mt-1 text-sm font-medium text-gray-500">to Admin Panel</p>
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
+            <form onSubmit={handleSubmit} noValidate className="mt-8 flex flex-col gap-5">
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700">Email or Phone number</label>
                 <input
                   type="text"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    setEmailError(null)
+                    setApiError(null)
+                  }}
                   placeholder="Enter your email or phone number"
                   className="w-full rounded-full border border-gray-200 bg-white px-5 py-3.5 text-[15px] text-gray-900 outline-none transition-shadow placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                   required
                 />
+                {emailError && (
+                  <p className="mt-2 text-xs font-semibold text-red-500 pl-5">
+                    {emailError}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -66,7 +98,11 @@ export default function LoginPage({ onLogin }) {
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value)
+                      setPasswordError(null)
+                      setApiError(null)
+                    }}
                     placeholder="Enter password"
                     className="w-full rounded-full border border-gray-200 bg-white px-5 py-3.5 pr-12 text-[15px] text-gray-900 outline-none transition-shadow placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                     required
@@ -88,13 +124,12 @@ export default function LoginPage({ onLogin }) {
                     )}
                   </button>
                 </div>
+                {(passwordError || apiError) && (
+                  <p className="mt-2 text-xs font-semibold text-red-500 pl-5">
+                    {passwordError || apiError}
+                  </p>
+                )}
               </div>
-
-              {error && (
-                <div className="text-sm font-medium text-red-500 text-center">
-                  {error}
-                </div>
-              )}
 
               <div className="flex justify-end">
                 <button type="button" className="text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors">

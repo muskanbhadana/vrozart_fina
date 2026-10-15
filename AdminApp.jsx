@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import AdminLayout from './components/AdminLayout.jsx'
 import { getAuthToken, clearAuthToken } from './config/auth.js'
+import { determineCreditRoute } from './config/routing.js'
 import AdminDashboard from './pages/AdminDashboard.jsx'
 import ApplicationsPage from './pages/ApplicationsPage.jsx'
 import SelectApplicationPage from './pages/SelectApplicationPage.jsx'
@@ -27,23 +28,26 @@ export default function AdminApp() {
   const isCreditRoute = (() => {
     if (typeof window === 'undefined') return false
     
-    // Check explicitly saved dashboard type
-    if (localStorage.getItem('vrozart_dashboard_type') === 'credit') return true
+    const dashboardType = localStorage.getItem('vrozart_dashboard_type')
+    const path = window.location.pathname
+    let user = null
+    try {
+      const userStr = localStorage.getItem('vrozart_admin_user')
+      if (userStr) user = JSON.parse(userStr)
+    } catch (e) {}
     
-    // Check URL
-    if (window.location.pathname.includes('/credit')) return true
-    
-    // Check role as fallback
+    return determineCreditRoute(dashboardType, path, user)
+  })()
+
+  const isCreditManager = (() => {
+    if (typeof window === 'undefined') return false
     try {
       const userStr = localStorage.getItem('vrozart_admin_user')
       if (userStr) {
-        const user = JSON.parse(userStr)
-        if (user.role === 'CREDIT_ANALYST' || user.role === 'Credit Analyst') {
-          return true
-        }
+        const u = JSON.parse(userStr)
+        return u && typeof u.role === 'string' && u.role.toLowerCase().includes('manager')
       }
-    } catch(e) {}
-    
+    } catch (e) {}
     return false
   })()
     
@@ -95,7 +99,7 @@ export default function AdminApp() {
         <CreditApplicationDetailsPage
           application={selectedApplication}
           onBack={() => {
-            setActivePage('assigned-applications')
+            setActivePage(isCreditManager ? 'applications' : 'assigned-applications')
             setSelectedApplication(null)
           }}
           onViewDocuments={() => {

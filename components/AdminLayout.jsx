@@ -2,13 +2,27 @@ import { useState } from 'react'
 import { IconSettings } from './AdminIcons.jsx'
 import AdminSidebar from './AdminSidebar.jsx'
 import CreditSidebar from './CreditSidebar.jsx'
+import { getAdminUser } from '../config/auth.js'
 
 export default function AdminLayout({ activePage, onNavigate, children, onLogout, isCreditRoute: isCreditRouteProp }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const user = getAdminUser()
+  const isCreditManager = user && typeof user.role === 'string' && user.role.toLowerCase().includes('manager')
 
   const isCreditRoute = isCreditRouteProp !== undefined ? isCreditRouteProp : (typeof window !== 'undefined' && window.location.pathname.includes('/credit'))
-  const dashboardTitle = isCreditRoute ? 'Credit Analyst' : 'Admin Panel'
-  const dashboardSubtitle = isCreditRoute ? 'Manage credit analysis operations' : 'Manage your finance operations'
+  
+  let dashboardTitle = 'Admin Panel'
+  let dashboardSubtitle = 'Manage your finance operations'
+  
+  if (isCreditRoute) {
+    if (isCreditManager) {
+      dashboardTitle = 'Credit Manager'
+      dashboardSubtitle = 'Applications assigned each analyst and overall analyst performance.'
+    } else {
+      dashboardTitle = 'Credit Analyst'
+      dashboardSubtitle = 'Manage credit analysis operations'
+    }
+  }
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-slate-50">
